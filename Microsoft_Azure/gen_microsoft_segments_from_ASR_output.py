@@ -132,8 +132,8 @@ class GenMicrosoftSegments:
                 seg = self._parse_word_timing_str(seg)
                 #update units (100 ns) to milliseconds 
                 for w in range(0, len(seg['word_timing'])):
-                    seg['word_timing'][w]['Duration'] = seg['word_timing'][w]['Duration']* 10**-4 
-                    seg['word_timing'][w]['Offset'] = seg['word_timing'][w]['Offset']* 10**-4                
+                    seg['word_timing'][w]['Duration_ms'] = seg['word_timing'][w]['Duration']* 10**-4 
+                    seg['word_timing'][w]['Offset_ms'] = seg['word_timing'][w]['Offset']* 10**-4                
                 #save to pickle file 
                 fn = os.path.join(wt_outdir, seg['segment_id'] + '.pkl')
                 with open(fn, 'wb') as file:
