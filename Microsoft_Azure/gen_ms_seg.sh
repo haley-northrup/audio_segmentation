@@ -5,7 +5,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem=10000
-#SBATCH --time=06:00:00
+#SBATCH --time=48:00:00
 #SBATCH --array 1
 #SBATCH --output=logs/%x-%j.log
 #SBATCH --account=emilykmp1
