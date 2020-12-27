@@ -24,10 +24,10 @@ segment metdata csv file
 /wav 
 /word_timing 
 
-* 1A)  CHECK SEGMENTATION OUTPUTS (check_segmentation_output.py) * 
+* **1A)  CHECK SEGMENTATION OUTPUTS (check_segmentation_output.py)** 
 
 ### 2. If genertated segments with multiple jobs, combine segment output folders to single folder and meta data file with combine_segment_job_outputs.sh (calls combine_segment_job_outputs.py) 
 
-* 2A) CHECK SEGMENTATION OUTPUTS (check_segmentation_output.py) *
+* **2A) CHECK SEGMENTATION OUTPUTS (check_segmentation_output.py)**
 
 
