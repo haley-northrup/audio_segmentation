@@ -22,7 +22,7 @@ NOTE: Recommend running multiple jobs and then combining outputs into single set
 
 OUTPUTS:
 segment metdata csv file  
-/segments 
+/wav 
 /word_timing 
 
 1A)  CHECK SEGMENTATION OUTPUTS (check_segmentation_output.py) 

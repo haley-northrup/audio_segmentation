@@ -11,7 +11,7 @@ from IPython import embed
 Script for generating segments from Microsoft Azure ASR output 
 
 segment metdata csv file  
-/segments 
+/wav 
 /word_timing 
 
 """
@@ -61,7 +61,7 @@ class GenMicrosoftSegments:
         :param wav_dir: Path to directory with .wav files used to generate segments  
         """
         #make output directory 
-        seg_outdir = os.path.join(output_dir, 'segments') 
+        seg_outdir = os.path.join(output_dir, 'wav') 
         if not os.path.exists(seg_outdir): 
             os.makedirs(seg_outdir) 
 
