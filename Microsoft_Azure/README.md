@@ -3,6 +3,14 @@
 
 Microsoft Azure segmentation uses the outputs of the Microsoft Azure transcription process which includes "offset" and "durations" for each string of transcribed text. This is used to generate segment .wav files and word timing .npy files. 
 
+Library Requirements:
+*pydub*
+shutil 
+os
+numpy 
+pickle
+pandas 
+
 
 0. Generate a text file with Microsoft Azure transcription output paths 
 
@@ -18,7 +26,6 @@ segment metdata csv file
 /word_timing 
 
 1A)  CHECK SEGMENTATION OUTPUTS (check_segmentation_output.py) 
-
 
 2. If genertated segments with multiple jobs, combine segment output folders to single folder and meta data file with combine_segment_job_outputs.sh (calls combine_segment_job_outputs.py) 
 
