@@ -32,7 +32,7 @@ for n in range(0, num_jobs):
     tp = seg_set_paths[n]
     
     # Number of Files 
-    wavs = os.path.join(sf, 'segments')
+    wavs = os.path.join(sf, 'wav')
     word_time = os.path.join(sf, 'word_timing')
     meta_df = pd.read_csv(os.path.join(sf, 'priori_v1_ma_segments.csv'))
     if len(os.listdir(wavs)) != meta_df.shape[0]:

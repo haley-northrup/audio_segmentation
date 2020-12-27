@@ -29,7 +29,7 @@ num_jobs = 10
 seg_path ='/nfs/turbo/McInnisLab/PRIORI_v1_Microsoft_Azure/PRIORI-v1-Microsoft-segments'
 metadata_fn = 'priori_v1_ma_segments'
 seg_folders = [os.path.join(seg_path, 'seg_' + str(i))  for i in range(0, num_jobs)]
-comb_wav_dir = os.path.join(seg_path, 'segments')
+comb_wav_dir = os.path.join(seg_path, 'wav')
 comb_wt_dir = os.path.join(seg_path, 'word_timing')
 
 #CHECK COUNTS 
@@ -45,7 +45,7 @@ for n in range(0, num_jobs):
     meta_df['segment_number'] = meta_df['segment_number'].astype(int) 
 
     #Get files 
-    wavs = os.path.join(sf, 'segments')
+    wavs = os.path.join(sf, 'wav')
     word_time = os.path.join(sf, 'word_timing')
 
     if n == 0:
