@@ -11,9 +11,17 @@ Microsoft Azure segmentation uses the outputs of the Microsoft Azure transcripti
 
 The ComboSAD algorithm. 
 
+Original Code:  /nfs/turbo/McInnisLab/gideonjn/SegmentationScript/extractComboSAD.py 
 
 
 ## soheil_VAD 
 
 Soheil's Voice Activity Detector (VAD). 
+
+NOTE: apply_combosad.m - runs Voice Activity Detection algorithm!!! 
+
+TO DO: 2020-12-30 HMN 
+Fix the VAD segment start and stop estimation code (“apply_combosad.m”) 
+Edit the matlab to only contain VAD 
+
 
