@@ -1,7 +1,8 @@
 ''' Call Stitching for PRIORI V3 
 
-Adapted from: ./example_audio_stitching_PRIORI_v3.py 
-Original Code Provided by Steve Anderau (2020-12-23) 
+NOTE: All .wav files are not able to be loaded
+Track whether a .wav file is used to create a stitched call 
+DOES NOT SAVE CALLS LENGTH == 0!
 
 ''' 
 from scipy.io import wavfile
@@ -43,6 +44,7 @@ def stitch_audio_priori_v3(args):
     chunk = int(args.job_num)
     call_ids = sorted(call_part_df['call_id'].unique()) 
     call_ids = list(chunks(call_ids,100))[chunk-1] 
+    call_ids = call_ids
 
     print('Calls in chunk: ')
     print(len(call_ids))  
@@ -63,6 +65,7 @@ def stitch_audio_priori_v3(args):
         #Stitch call parts together 
         audio = []
         print('num wavs:' + str(len(files)))
+        call_df['stitched'] = False
         for f in files:
             try:
                 #load .wav file 
@@ -70,19 +73,18 @@ def stitch_audio_priori_v3(args):
                 #using .extend to stitch together all wavfiles making up a single call
                 audio.extend(a) 
                 print('loaded: ' + str(f))
-                call_df['stitched'] = True 
+                call_df.loc[call_df['file_path'] == f, 'stitched'] = True 
             except Exception as e:
-                print('call_id: ' + c)
-                print(f) 
-                print(e)
-        
+                print('could not load file: ' + str(f)) 
+
         #Save stitched call
         ## convert wavform data to int16 with vals between -32768 +32768. 
         ## Librosa writes wavform data to float with vals -1 +1  
-        audio = np.array(audio) 
-        audio = (audio * 32767).astype('int16')
-        stitched_path = os.path.join(output_wav, c+'.wav')
-        wavfile.write(stitched_path, Fs, audio)
+        if len(audio) > 0:
+            audio = np.array(audio) 
+            audio = (audio * 32767).astype('int16')
+            stitched_path = os.path.join(output_wav, c+'.wav')
+            wavfile.write(stitched_path, Fs, audio)
 
         #Save metadata
         #************************
