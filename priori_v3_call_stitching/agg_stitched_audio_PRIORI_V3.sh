@@ -16,5 +16,7 @@ source /nfs/turbo/McInnisLab/hnorthru/anaconda3/etc/profile.d/conda.sh
 conda activate gid_8_tn_20200220
 
 python3 agg_stitched_audio_PRIORI_V3.py \
---input_dir='./temp/metadata/' \
---output_dir='./temp' \
+--input_dir='/nfs/turbo/McInnisLab/priori_v3_data_Dec_2020/call_audio_stitched/metadata/' \
+--wav_dir='/nfs/turbo/McInnisLab/priori_v3_data_Dec_2020/call_audio_stitched/wav/' \
+--meta_path='/nfs/turbo/McInnisLab/priori_v3_data_Dec_2020/tables/call_audio.csv' \
+--output_dir='/nfs/turbo/McInnisLab/priori_v3_data_Dec_2020/tables/' \

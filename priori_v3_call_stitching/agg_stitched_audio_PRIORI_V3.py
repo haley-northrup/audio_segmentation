@@ -1,60 +1,53 @@
 import os 
 import pandas as pd 
 import argparse
-
+import numpy as np 
 from IPython import embed 
+
 
 #Parse Arguments 
 #**********************
 parser = argparse.ArgumentParser()
-parser.add_argument('--input_dir', type=str, help="Path to directory with individual output feature files")
-parser.add_argument('--output_dir', type=str, help="Path to directory to output combined feature files to.")
+parser.add_argument('--input_dir', type=str, help="Path to directory with individual output files")
+parser.add_argument('--wav_dir', type=str, help="Path to directory with individual wav files")
+parser.add_argument('--meta_path', type=str, help="Path to directory with Priori V3 original .wav metadata")
+parser.add_argument('--output_dir', type=str, help="Path to directory to output combined files to.")
 args = parser.parse_args()
+
+#Load metadata 
+meta_df = pd.read_csv(args.meta_path) 
 
 #Aggregate individual files in input_dir 
 #***********************************
-files = os.listdir(args.input_dir) 
-df_full = pd.DataFrame()
-for f in files: 
+files = os.listdir(args.input_dir)
+raw_wav_df = pd.DataFrame()
+call_df = pd.DataFrame(index=meta_df['call_id'].unique())
+for f in files: #each call has a file 
+    #All .wavs df  
     df = pd.read_csv(os.path.join(args.input_dir, f))
-    df_full = df_full.append(df, sort=True)   
-embed()
-exit() 
+    call_id = df['call_id'].unique()[0] 
+    df['call_wav_count'] = df.shape[0] #number of .wav files     
+    # 'stitched' refered to .wav file readable, but was not saved as full call .wav if len == 0 
+    if os.path.exists(os.path.join(args.wav_dir, call_id+'.wav')):
+        call_file_path = os.path.join(args.wav_dir, call_id+'.wav')
+    else:
+        call_file_path = np.nan 
+        df['stitched'] = False 
+    raw_wav_df = raw_wav_df.append(df, sort=True) 
 
-        #Reorder columns 
-        #cols = ['call_id', 'file_id', 'wav_number', 'call_wav_count', 'record_id', 'is_assessment_call', \
-        #'length_seconds', 'size_bytes', 'file_path', 'prechter_file_path']
-        #if call_part_df.shape[1] == len(cols):
-        #    call_part_df = call_part_df[cols]
-
-        #call_part_df.to_csv(os.path.join(output_meta, 'call_audio_metadata_20210108.csv'), index=False) 
-        #stitched_call_df.to_csv(os.path.join(output_meta, 'call_audio_stitched_20210108.csv'), index=False)
-
-        
-        #Track metadata 
-        #call_part_df.loc[cidx, 'call_wav_count'] = int(cidx.sum())
-
-#stitched_call_df = pd.DataFrame(columns=['call_id', 'call_wav_count', 'record_id', 'is_assessment_call', 'length_seconds', 'file_path'])
-        #row += 1
-#stitched call metadata 
-#stitched_call_df.loc[row, 'call_id'] = c
-#stitched_call_df.loc[row, 'call_wav_count'] = int(cidx.sum())
-        #stitched_call_df.loc[row, 'record_id'] = call_df['record_id'].values[0]
-        #stitched_call_df.loc[row, 'is_assessment_call'] = call_df['is_assessment_call'].values[0]
-        #stitched_call_df.loc[row, 'length_seconds'] = call_df['length_seconds'].sum() 
-        #stitched_call_df.loc[row, 'file_path'] = stitched_path
-
-#Add metadata based on level 
-if args.level == 'day': 
-        df_full['day_id'] = df_full.index 
-        sub_ids = df_full['day_id'].apply(lambda x: x.split('_')[0]).values 
-        dates = df_full['day_id'].apply(lambda x: x.split('_')[1]).values
-        df_full.insert(loc=0, column='subject_id', value=sub_ids)
-        df_full.insert(loc=1, column='date', value=dates) 
-        df_full = df_full.drop(['day_id'], axis=1) 
-elif args.level == 'call':
-        df_full.insert(loc=0, column='call_id', value=df_full.index.values) 
-
-#Save aggregate file 
-df_full.to_csv(os.path.join(args.output_dir, args.level + '_' + args.call_type + '_rhythm.csv'), index=False) 
-
+    #Calls df 
+    call_df.loc[call_id, 'total_wav_count'] = df.shape[0] #number of .wav files 
+    call_df.loc[call_id, 'stitched_wav_count'] = df['stitched'].sum() #number of stitched .wav files 
+    call_df.loc[call_id, 'record_id'] = df['record_id'].unique()[0]
+    call_df.loc[call_id, 'is_assessment_call'] = df['is_assessment_call'].unique()[0]
+    call_df.loc[call_id, 'length_seconds'] = df['length_seconds'].sum() 
+    call_df.loc[call_id, 'file_path'] = call_file_path
+    
+#Save files
+#all .wav files  
+raw_wav_df.to_csv(os.path.join(args.output_dir, 'call_audio_expanded.csv'), index=False) 
+#call metadata 
+call_df['call_id'] = call_df.index
+call_df = call_df.set_index('call_id')
+call_df = call_df.reset_index()
+call_df.to_csv(os.path.join(args.output_dir, 'call_audio_stitched.csv'), index=False) 
