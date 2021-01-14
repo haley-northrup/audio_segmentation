@@ -1,4 +1,8 @@
 function [sil_st_points, sil_end_points, sp_st_points, sp_end_points] = find_start_end_points(vadout)
+
+% find start and end points speech and silences from 
+% binary voice activity detector output (vadout) 
+
 vadout = (vadout + 0);
 delta_vadout = vadout(2:end) - vadout(1:end-1);
 sil_st_points = find(delta_vadout > -1.1 & delta_vadout < -0.9) + 1;

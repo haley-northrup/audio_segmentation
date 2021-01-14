@@ -1,4 +1,9 @@
 function doSegmentationAll(part_id, part_num)
+
+% Set up for Soheil VAD segmentation for PRIORI V1 data 
+% NOTE: calls "apply_combosad" but does VAD segmentation in the "apply_combosad.m" file 
+
+
 inpath = '/nfs/turbo/McInnisLab/priori_v1_data/call_audio/speech';
 outpath = '/nfs/turbo/McInnisLab/soheil-segmentation-script/priori_v1_segments';
 callid_subid_file = '/nfs/turbo/McInnisLab/soheil-segmentation-script/priori_v1_callid_subjectid.txt';
@@ -33,7 +38,9 @@ for i = 1:size(callid_subid_list,1)
     end
     copyfile(infile, outdir);
     disp(['Extracting segments for call ' num2str(call)]);
+    
     try
+        % Soheil's Voice Activity Detection (VAD) 
         apply_combosad(infile, outdir);
     catch
         disp(['Can not extract segments from call: ' num2str(call)]);
