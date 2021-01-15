@@ -4,6 +4,8 @@ NOTE: All .wav files are not able to be loaded
 Track whether a .wav file is used to create a stitched call 
 DOES NOT SAVE CALLS LENGTH == 0!
 
+PRIORI V3 Raw Audio Sample Rate = 16kHz 
+
 ''' 
 from scipy.io import wavfile
 import librosa
@@ -13,6 +15,10 @@ import numpy as np
 import math 
 import argparse 
 from IPython import embed 
+
+
+SAMPLE_RATE = 16000 #Hz  PRIORI_V3 raw audio sample rate 
+
 
 def chunks(l, n_chunks):
 	n_in_chunk = math.ceil(float(len(l))/float(n_chunks))
@@ -44,7 +50,6 @@ def stitch_audio_priori_v3(args):
     chunk = int(args.job_num)
     call_ids = sorted(call_part_df['call_id'].unique()) 
     call_ids = list(chunks(call_ids,100))[chunk-1] 
-    call_ids = call_ids
 
     print('Calls in chunk: ')
     print(len(call_ids))  
@@ -69,7 +74,7 @@ def stitch_audio_priori_v3(args):
         for f in files:
             try:
                 #load .wav file 
-                a, Fs = librosa.load(f)
+                a, Fs = librosa.load(f, SAMPLE_RATE)
                 #using .extend to stitch together all wavfiles making up a single call
                 audio.extend(a) 
                 print('loaded: ' + str(f))
