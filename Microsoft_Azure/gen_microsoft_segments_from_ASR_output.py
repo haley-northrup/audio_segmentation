@@ -25,6 +25,9 @@ class GenMicrosoftSegments:
         self.recognition_result_files = recognition_result_files
         self.segment_dict = self._collect_segment_info()
         self.call_meta_df = pd.read_csv(args.call_metadata) 
+        if 'record_id' in set(list(self.call_meta_df.columns)):
+            self.call_meta_df['subject_id'] = self.call_meta_df['record_id']
+            self.call_meta_df['is_assessment'] = self.call_meta_df['is_assessment_call']
 
     def _collect_segment_info(self):
         """
@@ -93,26 +96,33 @@ class GenMicrosoftSegments:
                 #Save segment metadata 
                 seg_df.loc[sidx, 'segment_id'] = seg_id 
                 seg_meta_df.loc[ct, 'segment_id'] =  seg_id
-                seg_meta_df.loc[ct, 'call_id'] = int(call_id)
+                seg_meta_df.loc[ct, 'call_id'] = call_id
                 seg_meta_df.loc[ct, 'segment_number'] = int(s) #John/Soheil called "segment_order" 
-                seg_meta_df.loc[ct, 'subject_id'] = self.call_meta_df.loc[cidx, 'subject_id'].astype(int).values[0]
-                seg_meta_df.loc[ct, 'call_datetime'] = self.call_meta_df.loc[cidx, 'date_time'].values[0]
+                seg_meta_df.loc[ct, 'subject_id'] = int(self.call_meta_df.loc[cidx, 'subject_id'].values[0])
+                #TODO not datetime information for priori-v3 (2021-01-19) 
+                #seg_meta_df.loc[ct, 'call_datetime'] = self.call_meta_df.loc[cidx, 'date_time'].values[0]
                 seg_meta_df.loc[ct, 'is_assessment'] = self.call_meta_df.loc[cidx, 'is_assessment'].values[0]
-                seg_meta_df.loc[ct, 'device'] = self.call_meta_df.loc[cidx, 'device'].values[0]
+                #TODO not datetime information for priori-v3 (2021-01-19) 
+                #seg_meta_df.loc[ct, 'device'] = self.call_meta_df.loc[cidx, 'device'].values[0]
                 seg_meta_df.loc[ct, 'duration_ms'] = int(duration_ms) #John/Soheil call "segment_length"
                 seg_meta_df.loc[ct, 'start_ms'] = int(start_ms) 
                 seg_meta_df.loc[ct, 'end_ms'] = int(end_ms) 
                 seg_meta_df.loc[ct, 'confidence'] = seg_df.loc[sidx, 'confidence'].values[0]
                 seg_meta_df.loc[ct, 'ma_transcription'] = seg_df.loc[sidx, 'text'].values[0] 
                 ct = ct + 1  
-            #update segment_dict with segment_ids 
-            self.segment_dict[call_id] = seg_df     
-        #Save transcript version 
-        seg_meta_df.to_csv(os.path.join(output_dir, 'priori_v1_ma_segments_with_trans.csv'), index=False) 
-        #Save no transcript version 
-        seg_meta_df = seg_meta_df.drop(['ma_transcription'], axis=1)
-        seg_meta_df.to_csv(os.path.join(output_dir, 'priori_v1_ma_segments.csv'), index=False) 
 
+            #update segment_dict with segment_ids 
+            self.segment_dict[call_id] = seg_df    
+        #Convert columns to integers (NOTE not sure why this isn't working above )
+        int_cols = ['segment_number', 'subject_id', 'duration_ms', 'start_ms', 'end_ms']
+        seg_meta_df[int_cols] = seg_meta_df[int_cols].astype(int)
+        self.seg_meta_df = seg_meta_df 
+
+        #Save transcript version 
+        #seg_meta_df.to_csv(os.path.join(output_dir, 'TEMP_ma_segments_with_trans.csv'), index=False) 
+        #Save no transcript version 
+        #seg_meta_df = seg_meta_df.drop(['ma_transcription'], axis=1)
+        #seg_meta_df.to_csv(os.path.join(output_dir, 'ma_segments.csv'), index=False) 
 
     def gen_segment_word_timing_files(self, output_dir):
         """
@@ -130,6 +140,8 @@ class GenMicrosoftSegments:
             for s in range(0, seg_df.shape[0]):#iterate over segments
                 seg = seg_df.iloc[s]
                 seg = self._parse_word_timing_str(seg)
+                #get word count 
+                self.seg_meta_df.loc[self.seg_meta_df['segment_id'] == seg['segment_id'], 'word_count'] = len(seg['word_timing'])
                 #update units (100 ns) to milliseconds 
                 for w in range(0, len(seg['word_timing'])):
                     seg['word_timing'][w]['Duration_ms'] = seg['word_timing'][w]['Duration']* 10**-4 
@@ -138,6 +150,15 @@ class GenMicrosoftSegments:
                 fn = os.path.join(wt_outdir, seg['segment_id'] + '.pkl')
                 with open(fn, 'wb') as file:
                     pickle.dump(seg['word_timing'], file, protocol=pickle.HIGHEST_PROTOCOL) 
+
+        #Save segment metadata
+        #****************************
+        self.seg_meta_df['word_count'] = self.seg_meta_df['word_count'].astype(int) 
+        self.seg_meta_df.to_csv(os.path.join(output_dir, 'ma_segments_with_trans.csv'), index=False) 
+        #Save no transcript version 
+        seg_meta_df_no_trans = self.seg_meta_df.drop(['ma_transcription'], axis=1)
+        seg_meta_df_no_trans.to_csv(os.path.join(output_dir, 'ma_segments.csv'), index=False) 
+
 
     def _parse_word_timing_str(self, seg_df):
         """
