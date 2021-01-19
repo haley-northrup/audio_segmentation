@@ -12,10 +12,10 @@
 #SBATCH --partition=standard
 #SBATCH --export=NONE 
 
-source /nfs/turbo/McInnisLab/hnorthru/anaconda3/etc/profile.d/conda.sh 
-conda activate gid_8_tn_20200220
+source /home/hnorthru/anaconda3/etc/profile.d/conda.sh 
+conda activate audio_proc_20210115
 
 python stitch_audio_PRIORI_V3.py \
 --job_num=$SLURM_ARRAY_TASK_ID   \
 --metadata_path='/nfs/turbo/McInnisLab/priori_v3_data_Dec_2020/tables/call_audio.csv' \
---output_dir='/nfs/turbo/McInnisLab/priori_v3_data_Dec_2020/call_audio_stitched/' \
+--output_dir='/scratch/emilykmp_root/emilykmp/hnorthru/priori_v3_data_Dec_2020/call_audio_stitched/' \

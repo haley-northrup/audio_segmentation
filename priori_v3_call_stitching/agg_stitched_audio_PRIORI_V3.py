@@ -4,7 +4,6 @@ import argparse
 import numpy as np 
 from IPython import embed 
 
-
 #Parse Arguments 
 #**********************
 parser = argparse.ArgumentParser()
@@ -38,7 +37,7 @@ for f in files: #each call has a file
     #Calls df 
     call_df.loc[call_id, 'total_wav_count'] = df.shape[0] #number of .wav files 
     call_df.loc[call_id, 'stitched_wav_count'] = df['stitched'].sum() #number of stitched .wav files 
-    call_df.loc[call_id, 'record_id'] = df['record_id'].unique()[0]
+    call_df.loc[call_id, 'record_id'] = int(df['record_id'].unique()[0])
     call_df.loc[call_id, 'is_assessment_call'] = df['is_assessment_call'].unique()[0]
     call_df.loc[call_id, 'length_seconds'] = df['length_seconds'].sum() 
     call_df.loc[call_id, 'file_path'] = call_file_path
@@ -47,6 +46,7 @@ for f in files: #each call has a file
 #all .wav files  
 raw_wav_df.to_csv(os.path.join(args.output_dir, 'call_audio_expanded.csv'), index=False) 
 #call metadata 
+call_df['record_id'] = call_df['record_id'].astype(int) 
 call_df['call_id'] = call_df.index
 call_df = call_df.set_index('call_id')
 call_df = call_df.reset_index()
