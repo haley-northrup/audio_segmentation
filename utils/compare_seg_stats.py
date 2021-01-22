@@ -17,8 +17,9 @@ outdir = '.'
 method1 = 'soheil_VAD'
 method2 = 'microsoft_azure' 
 
-method1_path = './soheil_VAD/call_seg_metadata.csv'
-method2_path = './microsoft_azure/call_seg_metadata.csv'
+base_path = '/nfs/turbo/chai-health/hnorthru/analysis/20210103_seg_quality_analysis/'
+method1_path = os.path.join(base_path, 'soheil_VAD', 'call_seg_metadata.csv')
+method2_path = os.path.join(base_path, 'microsoft_azure', 'call_seg_metadata.csv')
 
 priori_emotion_subjects = [1250001, 1510001, 1517001, 1639001, 1786001, 1815001, 1850001,
        2140001, 2218001, 2368001, 2434001, 2503001, 2636001, 2637001,
@@ -122,3 +123,41 @@ set_diff21_list = np.array(list(set_diff21))
 print('random calls from set21 (VAD seg, MA no seg)')
 for s in ints:
     print(set_diff21_list[s])
+
+
+
+
+#ADDED CALLS WITH SEGMENTS ANALYSIS - 2021-01-20 HMN  
+#*******************************************
+#*******************************************
+print()
+print() 
+print('COMPARE DIFFERENCE CALLS (WITH SEGMENTS) ***************')
+
+#Calls with segments 
+call_df1_segs = valid_call_df1.loc[valid_call_df1['segment_count'] > 0, :]
+call_df2_segs = valid_call_df2.loc[valid_call_df2['segment_count'] > 0, :]
+calls_segs1 = set(call_df1_segs['call_id'])
+calls_segs2 = set(call_df2_segs['call_id'])
+
+
+set_diff12 = calls_segs1.difference(calls_segs2)
+set_diff21 = calls_segs2.difference(calls_segs1)
+set_same = calls_segs1.intersection(calls_segs2)
+print('Set 1 difference Set 2: ' + str(len(set_diff12)))
+print('Set same: ' + str(len(set_same))) 
+print('Set 2 difference Set 1: ' + str(len(set_diff21)))
+
+calls_diff_21_df = valid_call_df2.loc[valid_call_df2['call_id'].isin(set_diff21), :]
+
+print(calls_diff_21_df['total_seg_dur_sec'].describe())
+print(calls_diff_21_df['seg_dur_sec_mean'].describe())
+
+plt.figure()
+calls_diff_21_df['total_seg_dur_sec'].hist(bins=100)
+
+plt.yscale('log')
+plt.ylabel('Number of Calls (log scale)')
+plt.xlabel('Call length (seconds)')
+plt.title('Total Segment Duration in Seconds per Call (MA not VAD)')
+plt.savefig(os.path.join(outdir, 'call_diffMA_notVAD_tot_seg_dur_sec.png')) 
