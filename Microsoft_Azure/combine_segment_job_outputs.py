@@ -26,8 +26,8 @@ def _read_file_by_lines(filename):
 
 #PATHS TO SEGMENT OUTPUTS 
 num_jobs = 10 
-seg_path ='/nfs/turbo/McInnisLab/PRIORI_v1_Microsoft_Azure/PRIORI-v1-Microsoft-segments'
-metadata_fn = 'priori_v1_ma_segments'
+seg_path ='/scratch/emilykmp_root/emilykmp/hnorthru/priori_v3_data_Dec_2020/segments/'
+metadata_fn = 'ma_segments'
 seg_folders = [os.path.join(seg_path, 'seg_' + str(i))  for i in range(0, num_jobs)]
 comb_wav_dir = os.path.join(seg_path, 'wav')
 comb_wt_dir = os.path.join(seg_path, 'word_timing')
@@ -40,7 +40,7 @@ for n in range(0, num_jobs):
     #get metadata
     meta_df = pd.read_csv(os.path.join(sf, metadata_fn + '.csv'))
     meta_df = meta_df.sort_index() #order by segment_id (ma0, ma1, ma2...)
-    meta_df['call_id'] = meta_df['call_id'].astype(int) 
+    meta_df['call_id'] = meta_df['call_id'] #.astype(int) 
     meta_df['subject_id'] = meta_df['subject_id'].astype(int).astype(str) 
     meta_df['segment_number'] = meta_df['segment_number'].astype(int) 
 

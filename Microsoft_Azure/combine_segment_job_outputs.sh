@@ -12,7 +12,7 @@
 #SBATCH --partition=standard
 #SBATCH --export=NONE
 
-#source /nfs/turbo/McInnisLab/hnorthru/anaconda3/etc/profile.d/conda.sh 
-#conda activate gid_8_tn_20200220
+source /home/hnorthru/anaconda3/etc/profile.d/conda.sh 
+conda activate audio_proc_20210115
 
 python combine_segment_job_outputs.py 
