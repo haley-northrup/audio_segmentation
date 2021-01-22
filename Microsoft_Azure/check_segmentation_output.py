@@ -17,12 +17,9 @@ def _read_file_by_lines(filename):
 
 #PATHS TO SEGMENT OUTPUTS 
 num_jobs = 10
-#transcript_paths = '/nfs/turbo/McInnisLab/hnorthru/code/audio_segmentation/Microsoft_Azure/'
-transcript_paths = '/nfs/turbo/McInnisLab/hnorthru/code/audio_segmentation/Microsoft_Azure/tran_paths'
-#seg_set_paths = [os.path.join(transcript_paths, 'ma_pv1_set_paths.txt')]
-seg_set_paths = [os.path.join(transcript_paths, 'ma_pv1_set_paths_' + str(i) + '.txt') for i in range(0, num_jobs)]
-output_dir='/nfs/turbo/McInnisLab/PRIORI_v1_Microsoft_Azure/PRIORI-v1-Microsoft-segments'
-#seg_folders = [output_dir]
+transcript_paths = '/nfs/turbo/chai-health/hnorthru/code/audio_segmentation/Microsoft_Azure/trans_paths/pv3/'
+seg_set_paths = [os.path.join(transcript_paths, 'ma_pv3_dec2020_not_usa_r21_set_paths_' + str(i) + '.txt') for i in range(0, num_jobs)]
+output_dir='/scratch/emilykmp_root/emilykmp/hnorthru/priori_v3_data_Dec_2020/segments/'
 seg_folders = [os.path.join(output_dir, 'seg_' + str(i))  for i in range(0, num_jobs)]
 
 #CHECK COUNTS 
@@ -34,7 +31,7 @@ for n in range(0, num_jobs):
     # Number of Files 
     wavs = os.path.join(sf, 'wav')
     word_time = os.path.join(sf, 'word_timing')
-    meta_df = pd.read_csv(os.path.join(sf, 'priori_v1_ma_segments.csv'))
+    meta_df = pd.read_csv(os.path.join(sf, 'ma_segments.csv'))
     if len(os.listdir(wavs)) != meta_df.shape[0]:
         print('*****Inconsistent # segment wav files as metadata rows')
     elif len(os.listdir(word_time)) != meta_df.shape[0]:
@@ -77,12 +74,12 @@ for n in range(0, num_jobs):
 
 
 # Total Number of Files Matches sum of individual jobs 
-all_seg_meta_df = pd.read_csv(os.path.join(output_dir, 'priori_v1_ma_segments.csv'))
+all_seg_meta_df = pd.read_csv(os.path.join(output_dir, 'ma_segments.csv'))
 file_counts = []
 for n in range(0, num_jobs):
     sf = seg_folders[n]
     #print('Folder: ' + sf)
-    meta_df = pd.read_csv(os.path.join(sf, 'priori_v1_ma_segments.csv'))
+    meta_df = pd.read_csv(os.path.join(sf, 'ma_segments.csv'))
     #print(meta_df.shape[0])
     file_counts.append(meta_df.shape[0]) 
 
@@ -93,12 +90,14 @@ else:
     print(all_seg_meta_df.shape)
 
 #CHECK START AND END FILES 
-cols = ['call_id', 'segment_num', 'subject_id', 'call_datetime', 'is_assessment', 'device', 'duration_ms']
+#cols = ['call_id', 'segment_num', 'subject_id', 'call_datetime', 'is_assessment', 'device', 'duration_ms']
+cols = ['call_id', 'segment_number', 'subject_id', 'is_assessment', 'duration_ms']
+
 start_idx = 0 
 for n in range(0, num_jobs):
     sf = seg_folders[n]
     print('Folder: ' + sf)
-    meta_df = pd.read_csv(os.path.join(sf, 'priori_v1_ma_segments.csv'))
+    meta_df = pd.read_csv(os.path.join(sf, 'ma_segments.csv'))
     end_idx = start_idx + meta_df.shape[0] - 1
 
     #Check start file 
