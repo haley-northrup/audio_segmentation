@@ -12,11 +12,11 @@
 #SBATCH --partition=standard
 #SBATCH --export=NONE
 
-source /nfs/turbo/McInnisLab/hnorthru/anaconda3/etc/profile.d/conda.sh 
-conda activate gid_8_tn_20200220
+source /home/hnorthru/anaconda3/etc/profile.d/conda.sh 
+conda activate audio_proc_20210115
 
 python gen_microsoft_segments_from_ASR_output.py \
---ms_asr_output_files='/nfs/turbo/McInnisLab/hnorthru/code/audio_segmentation/Microsoft_Azure/ma_pv1_set_paths.txt' \
---output_dir='/nfs/turbo/McInnisLab/PRIORI_v1_Microsoft_Azure/PRIORI-v1-Microsoft-segments' \
---wav_dir='/nfs/turbo/McInnisLab/priori_v1_data/call_audio/speech/' \
---call_metadata='/nfs/turbo/McInnisLab/hnorthru/code/kmatton/Feature-Extraction/temp/priori_v1_call_metadata.csv' \
+--ms_asr_output_files='/nfs/turbo/chai-health/hnorthru/code/audio_segmentation/Microsoft_Azure/TEMP_test_set_path.txt' \
+--output_dir='/scratch/emilykmp_root/emilykmp/hnorthru/priori_v3_data_Dec_2020/segments/' \
+--wav_dir='/scratch/emilykmp_root/emilykmp/hnorthru/priori_v3_data_Dec_2020/call_audio_stitched/wav/' \
+--call_metadata='/nfs/turbo/McInnisLab/priori_v3_data_Dec_2020/tables/call_audio_stitched.csv' \
