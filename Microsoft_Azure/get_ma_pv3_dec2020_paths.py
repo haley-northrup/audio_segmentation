@@ -9,7 +9,7 @@ only prechter participants (not USA-R21)***
 #SET UP 
 #***************************
 num_jobs = 10 #run segmentation in jobs 
-output_name = 'TEMP_ma_pv3_dec2020_not_usa_r21_set_paths'
+output_name = 'ma_pv3_dec2020_not_usa_r21_set_paths'
 trans = '/nfs/turbo/chai-health/hnorthru/PRIORI-v3-Microsoft-transcripts/'
 ctfile = os.path.join(trans, 'subject_set_counts_not_usa_r21.txt') 
 
