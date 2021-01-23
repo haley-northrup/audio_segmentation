@@ -1,12 +1,15 @@
 import sys, os
-sys.path.insert(0, '/nfs/turbo/McInnisLab/Libraries/lib/python2.7/site-packages')
+#sys.path.insert(0, '/nfs/turbo/McInnisLab/Libraries/lib/python2.7/site-packages')
 import numpy as np
 import scipy.io.wavfile as wav
 from scipy.signal import medfilt, lfilter
-from scikits.talkbox import lpc
-from sklearn.decomposition import PCA
 from scipy.cluster.vq import kmeans
-from resampy import resample
+from resampy import resample #ISSUES WITH RESAMPY
+from scikits.talkbox import lpc #ISSUES WITH TALKBOX
+from sklearn.decomposition import PCA #ISSUES WITH SKLEARN  
+
+
+
 
 # Get Mel Filterbank - https://github.com/jameslyons/python_speech_features
 def hz2mel(hz):
@@ -251,17 +254,18 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
 def unitTest():
     wavPath = '/nfs/turbo/McInnisLab/priori_v1_data/call_audio/assessment_speech/10006.wav'
     (Fs, audio) = wav.read(wavPath)
-    print 'Audio is '+str((len(audio)/Fs)/60)+' minutes long'
+    print('Audio is '+str((len(audio)/Fs)/60)+' minutes long')
+    #print 'Audio is '+str((len(audio)/Fs)/60)+' minutes long'
     useLen = np.min([len(audio), Fs*120])
     audio = audio[:useLen]
-    print 'Using '+str((useLen/Fs)/60)+' minute subset'
-    print 'Extracting segments using ComboSAD and default parameters'
+    print('Using '+str((useLen/Fs)/60)+' minute subset')
+    print('Extracting segments using ComboSAD and default parameters')
     segments = extractComboSAD(audio, Fs)
     for count, segment in enumerate(segments):
-        print 'Segment '+str(count)+':',
-        print str(segment['Start']) + ' -',
-        print str(segment['Stop']),
-        print '   ' + str(np.sqrt(np.mean(np.square(segment['Segment'])))) + ' RMS Energy'
+        print('Segment '+str(count)+':')#,
+        print(str(segment['Start']) + ' -')#,
+        print(str(segment['Stop'])) #,
+        print('   ' + str(np.sqrt(np.mean(np.square(segment['Segment'])))) + ' RMS Energy')
 
 if __name__ == "__main__":
     unitTest()
