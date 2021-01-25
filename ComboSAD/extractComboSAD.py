@@ -1,14 +1,13 @@
 import sys, os
-#sys.path.insert(0, '/nfs/turbo/McInnisLab/Libraries/lib/python2.7/site-packages')
+#print(sys.executable)
 import numpy as np
 import scipy.io.wavfile as wav
 from scipy.signal import medfilt, lfilter
 from scipy.cluster.vq import kmeans
-from resampy import resample #ISSUES WITH RESAMPY
-from scikits.talkbox import lpc #ISSUES WITH TALKBOX
-from sklearn.decomposition import PCA #ISSUES WITH SKLEARN  
-
-
+from sklearn.decomposition import PCA 
+from resampy import resample 
+from librosa import lpc 
+from IPython import embed
 
 
 # Get Mel Filterbank - https://github.com/jameslyons/python_speech_features
@@ -40,19 +39,20 @@ def get_filterbanks(nfilt=20,nfft=512,samplerate=16000,lowfreq=0,highfreq=None):
 def removeNoiseBias(signal, windowSize, stepSize):
     # Pad with first and last value on both ends (windowSize/2 length)
     outSignal = signal
-    outSignal = np.pad(outSignal, windowSize/2, 'median', stat_length= windowSize/2)
+    outSignal = np.pad(outSignal, int(windowSize/2), 'median', stat_length= int(windowSize/2))
 
     # Pad end until even number of frames
     nPad = int(stepSize - (len(outSignal) % stepSize))
     outSignal = np.pad(outSignal, (0, nPad), 'edge')
 
     # Setup framing
-    nFrames = ((len(outSignal) - windowSize) / stepSize) + 1    
+    nFrames = int(((len(outSignal) - windowSize) / stepSize) + 1)  
 
     # Get percentile signal
     frameStart = 0
     prctSignal = np.empty((nFrames,))
-    for fOn in xrange(nFrames):
+    #for fOn in xrange(nFrames):
+    for fOn in range(nFrames):
         # Get frame
         frame = outSignal[frameStart:frameStart+windowSize]
         frameStart = frameStart + stepSize
@@ -66,7 +66,8 @@ def removeNoiseBias(signal, windowSize, stepSize):
 # Find the midpoint between two Guassians
 def findBimodalChangePoint(data, totalIter, kmeansMaxIter):
     candidates = np.empty((totalIter,))
-    for it in xrange(totalIter):
+    #for it in xrange(totalIter):
+    for it in range(totalIter):
         C, _ = kmeans(data, 2, kmeansMaxIter)
         candidates[it] = np.mean(C)
     return np.median(candidates)
@@ -104,17 +105,20 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
     audio = np.pad(audio, int(windowSize/2), 'edge')
 
     # Pad end until even number of frames
-    nPad = int(stepSize - (len(audio) % stepSize))
+    #nPad = int(stepSize - (len(audio) % stepSize))
+    nPad = int(stepSize - (len(audio) - windowSize)% stepSize)
     audio = np.pad(audio, (0, nPad), 'edge')
 
     # Setup framing
     nFrames = ((len(audio) - windowSize) / stepSize) + 1    
+    nFrames = int(nFrames)
     nFeats = 6
     feats = np.full((nFrames, nFeats), np.nan)
 
     # Loop through frames
     frameStart = 0
-    for fOn in xrange(nFrames):
+    #for fOn in xrange(nFrames):
+    for fOn in range(nFrames):
         # Get frame
         frame = audio[frameStart:frameStart+windowSize]
         frameStart = frameStart + stepSize
@@ -127,7 +131,8 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
         # Autocorrelation (A) - Different from paper (Normalize by maximum
         #       potential autocorrelation without window)
         rxx = np.empty((maxPitchLag,))
-        for i in xrange(maxPitchLag):
+        #for i in xrange(maxPitchLag):
+        for i in range(maxPitchLag):
             denom = np.sum(np.maximum(np.square(x[i:]), np.square(x[:windowSize-i])))
             rxx[i] = np.matmul(x[i:].T, x[:windowSize-i]) / denom
         rxx = rxx * np.sum(np.square(x))
@@ -144,7 +149,8 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
             feats[fOn,1] = 1 - (np.min(D_func)/np.max(D_func))
 
             # Prediction Gain (A3)
-            a, _, _ = lpc(x,10)
+            #a, _, _ = lpc(x,10)
+            a = lpc(x, 10)
             a = np.pad(a[1:], (1,0), 'constant')
             est_x = lfilter(a,1,x)
             resErr = np.sum(np.abs(x-est_x))
@@ -152,13 +158,14 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
 
         # STFT
         X = np.abs(np.fft.fft(frame * hammWindow, nfft))
-        X = X[:(nfft/2)+1]
+        X = X[:int((nfft/2)+1)]
 
         # Periodicity (B1)
         P = np.empty(len(Pf),)
         for i, w in enumerate(Pf):
             Pw = np.empty((8,))
-            for j in xrange(8):
+            #for j in xrange(8):
+            for j in range(8):
                 Pw[j] = np.log(X[np.argmin(np.abs(freq-(w*(j+1))))])
             P[i] = np.sum(Pw)
         feats[fOn,3] = np.max(P)
@@ -255,17 +262,20 @@ def unitTest():
     wavPath = '/nfs/turbo/McInnisLab/priori_v1_data/call_audio/assessment_speech/10006.wav'
     (Fs, audio) = wav.read(wavPath)
     print('Audio is '+str((len(audio)/Fs)/60)+' minutes long')
-    #print 'Audio is '+str((len(audio)/Fs)/60)+' minutes long'
-    useLen = np.min([len(audio), Fs*120])
+    useLen = np.min([len(audio), Fs*180])#120
     audio = audio[:useLen]
     print('Using '+str((useLen/Fs)/60)+' minute subset')
     print('Extracting segments using ComboSAD and default parameters')
     segments = extractComboSAD(audio, Fs)
     for count, segment in enumerate(segments):
-        print('Segment '+str(count)+':')#,
-        print(str(segment['Start']) + ' -')#,
-        print(str(segment['Stop'])) #,
+        print('Segment '+str(count)+':')
+        print(str(segment['Start']) + ' - ' + str(segment['Stop']))
+        print(str(segment['Start']/Fs) + ' - ' + str(segment['Stop']/Fs))
         print('   ' + str(np.sqrt(np.mean(np.square(segment['Segment'])))) + ' RMS Energy')
+
+        #SAVE TEST 
+        wav.write(str(count) +'_test.wav', Fs, segment['Segment'])
+
 
 if __name__ == "__main__":
     unitTest()
