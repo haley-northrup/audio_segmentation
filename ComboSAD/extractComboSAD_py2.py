@@ -1,12 +1,12 @@
 import sys, os
-#sys.path.insert(0, '/nfs/turbo/McInnisLab/Libraries/lib/python2.7/site-packages')
+sys.path.insert(0, '/nfs/turbo/McInnisLab/Libraries/lib/python2.7/site-packages')
 import numpy as np
 import scipy.io.wavfile as wav
 from scipy.signal import medfilt, lfilter
 from scipy.cluster.vq import kmeans
-from resampy import resample #ISSUES WITH RESAMPY
-from scikits.talkbox import lpc #ISSUES WITH TALKBOX
-from sklearn.decomposition import PCA #ISSUES WITH SKLEARN  
+from resampy import resample 
+from scikits.talkbox import lpc 
+from sklearn.decomposition import PCA  
 
 
 
