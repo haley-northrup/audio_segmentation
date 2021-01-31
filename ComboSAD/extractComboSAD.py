@@ -9,6 +9,21 @@ from resampy import resample
 from librosa import lpc 
 from IPython import embed
 
+#DEBUG 
+#import matplotlib.pyplot as plt
+#import librosa
+#import librosa.display 
+
+#def plot_mel_spec(x, name):
+#    sr = 16000
+#    S = librosa.feature.melspectrogram(y=x, sr=sr)
+#    fig, ax = plt.subplots()
+#    S_dB = librosa.power_to_db(S, ref=np.max)
+#    img = librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sr, ax=ax)
+#    fig.colorbar(img, ax=ax, format='%+2.0f dB')
+#    ax.set(title='Mel-frequency spectrogram')
+#    fig.savefig(name + '.png')
+
 
 # Get Mel Filterbank - https://github.com/jameslyons/python_speech_features
 def hz2mel(hz):
@@ -37,6 +52,10 @@ def get_filterbanks(nfilt=20,nfft=512,samplerate=16000,lowfreq=0,highfreq=None):
 
 # Find and remove the DC component of a signal
 def removeNoiseBias(signal, windowSize, stepSize):
+
+    if stepSize == 0:
+        raise Exception("removeNoiseBias: stepSize must be greater than 0")
+
     # Pad with first and last value on both ends (windowSize/2 length)
     outSignal = signal
     outSignal = np.pad(outSignal, int(windowSize/2), 'median', stat_length= int(windowSize/2))
@@ -78,11 +97,24 @@ def findBimodalChangePoint(data, totalIter, kmeansMaxIter):
 #        Processing Letters, IEEE 20.3 (2013): 197-200.
 def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeechSec=30.0):
     ### EXTRACT COMBOSAD SIGNAL ###
-    
-    # Check for empty audio
+
+    #Check Input 
+    if minSpeechSec <= 0  or minSpeechSec == None:
+        raise Exception("minSpeechSec must be float greater than 0")
+    if maxSpeechSec == None or maxSpeechSec <= 0:
+        raise Exception("maxSpeechSec must be a float greater than 0")
+    if minSilenceSec == None or minSilenceSec <= 0:
+        raise Exception("minSilenceSec must be a float greater than 0")
+    # Check audio length and amplitude 
     if len(origAudio)==0:
         return []
-    
+    if len(origAudio)/Fs < minSpeechSec:
+        print('Audio length less than minSpeechSec')
+        return []
+    if origAudio.sum() == 0:
+        print('Audio amplitude all zeros')
+        return []
+ 
     # Setup constants
     windowSize = int(round(0.032*Fs))
     stepSize = int(round(0.010*Fs))
@@ -117,13 +149,14 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
 
     # Loop through frames
     frameStart = 0
+    ill_cond_ct = 0
     #for fOn in xrange(nFrames):
     for fOn in range(nFrames):
         # Get frame
         frame = audio[frameStart:frameStart+windowSize]
         frameStart = frameStart + stepSize
         x = frame * hannWindow;
-        
+
         # Deal with constant signal
         if np.all(x==x[0]):
             continue
@@ -148,13 +181,17 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
             D_func = np.sqrt(2*(rxx_0-rxx[minPitchLag:]))
             feats[fOn,1] = 1 - (np.min(D_func)/np.max(D_func))
 
-            # Prediction Gain (A3)
-            #a, _, _ = lpc(x,10)
-            a = lpc(x, 10)
-            a = np.pad(a[1:], (1,0), 'constant')
-            est_x = lfilter(a,1,x)
-            resErr = np.sum(np.abs(x-est_x))
-            feats[fOn,2] = np.log(rxx_0/resErr)
+            # Prediction Gain (A3) 
+            #some frames throw ill conditioned error
+            try:
+                #a, _, _ = lpc(x,10)
+                a = lpc(x, 10)
+                a = np.pad(a[1:], (1,0), 'constant')
+                est_x = lfilter(a,1,x)
+                resErr = np.sum(np.abs(x-est_x))
+                feats[fOn,2] = np.log(rxx_0/resErr)
+            except Exception as e: #keep track of frames that are "ill conditioned" (likely noise or no speech) 
+                ill_cond_ct = ill_cond_ct + 1
 
         # STFT
         X = np.abs(np.fft.fft(frame * hammWindow, nfft))
@@ -178,6 +215,11 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
 
         # RMS Energy (Added in addition to paper)
         feats[fOn,5] = np.sqrt(np.mean(np.square(x)))
+
+    #Track ill conditioned frames 
+    print('ill conditioned count: ' + str(ill_cond_ct)) 
+    print('nFrames: ' + str(nFrames))
+    print(ill_cond_ct/nFrames)
 
     # Set all skipped frames to minimum
     minVec = np.nanmin(feats, axis=0)
@@ -221,6 +263,7 @@ def extractComboSAD(origAudio, Fs, minSpeechSec=2.0, minSilenceSec=0.8, maxSpeec
 
     # Get binary segmentation signal
     smSAD = (smSAD>=changePt).astype(np.int)
+    print(changePt) 
 
     # Convert to segments
     smSAD = np.pad(np.diff(smSAD), (1,0), 'constant', constant_values=smSAD[0])
@@ -266,7 +309,7 @@ def unitTest():
     audio = audio[:useLen]
     print('Using '+str((useLen/Fs)/60)+' minute subset')
     print('Extracting segments using ComboSAD and default parameters')
-    segments = extractComboSAD(audio, Fs)
+    segments = extractComboSAD(audio, Fs, minSpeechSec=1.0, minSilenceSec=0.7, maxSpeechSec=30.0)
     for count, segment in enumerate(segments):
         print('Segment '+str(count)+':')
         print(str(segment['Start']) + ' - ' + str(segment['Stop']))
