@@ -1,3 +1,12 @@
+''' ComboSAD segmentation algorithm 
+
+# Reference:
+#        Sadjadi, Seyed Omid, and John HL Hansen. "Unsupervised speech activity 
+#        detection using voicing measures and perceptual spectral flux." Signal 
+#        Processing Letters, IEEE 20.3 (2013): 197-200.
+ 
+'''
+
 import sys, os
 #print(sys.executable)
 import numpy as np
@@ -8,21 +17,6 @@ from sklearn.decomposition import PCA
 from resampy import resample 
 from librosa import lpc 
 from IPython import embed
-
-#DEBUG 
-#import matplotlib.pyplot as plt
-#import librosa
-#import librosa.display 
-
-#def plot_mel_spec(x, name):
-#    sr = 16000
-#    S = librosa.feature.melspectrogram(y=x, sr=sr)
-#    fig, ax = plt.subplots()
-#    S_dB = librosa.power_to_db(S, ref=np.max)
-#    img = librosa.display.specshow(S_dB, x_axis='time', y_axis='mel', sr=sr, ax=ax)
-#    fig.colorbar(img, ax=ax, format='%+2.0f dB')
-#    ax.set(title='Mel-frequency spectrogram')
-#    fig.savefig(name + '.png')
 
 
 # Get Mel Filterbank - https://github.com/jameslyons/python_speech_features
